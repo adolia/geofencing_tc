@@ -1,0 +1,53 @@
+address,latitude,longitude
+
+### correct ones
+
+"155 Lambert Dr, Princeton, NJ, United States", 40.340864, -74.696987
+"15391 E 1st Ave, Aurora, CO, United States", 39.718957, -104.808901
+"555 El Encanto Rd, City Industry, CA, United States", 34.020608, -117.964785
+"3600 Redmont Rd, Birmingham, AL, United States", 33.505441, -86.772747
+"312 S Locust St, Ridgecrest, CA, United States", 35.618026, -117.644208
+"65 E Lawn Ct, Covington, GA, United States", 33.577675, -83.913147
+"6112 Wheatley St, Houston, TX, United States", 29.853813, -95.428558
+"33222 5th St, Union City, CA, United States", 37.605414, -122.023788
+"301 N Maxwell Rd, Peoria, IL, United States", 40.690457, -89.696015
+"401 N Houston St, Dallas, TX, United States", 32.781082, -96.809001
+
+
+
+"West City Plaza, Wen'er W Rd, ChengXi ShangQuan, Xihu Qu, Hangzhou Shi, Zhejiang Sheng, China", 30.2805101,120.0928462
+"Hangzhou Hikvision Digital Technology Co., Ltd., 555 Qianmo Rd, Binjiang Qu, Hangzhou Shi, Zhejiang Sheng, China", 30.2079952,120.2166695
+"Song Dynasty Town, 148 Zhijiang Rd, Xihu Qu, Hangzhou Shi, Zhejiang Sheng, China", 30.170177,120.0951903
+"Hangzhou Underwater World, 49 Nanshan Rd, Shangcheng Qu, Hangzhou Shi, Zhejiang Sheng, China", 30.234909,120.1524153
+
+"Wenzhou Exhibition Hall, 627 Chezhan Ave, Lucheng Qu, Wenzhou Shi, Zhejiang Sheng, China", 27.9934342,120.6713356
+"Huaxia Bank, 539 Jiefang St, Lucheng Qu, Wenzhou Shi, Zhejiang Sheng, China", 28.0166245,120.6546049
+
+
+"Hilton Shanghai, 250 Huashan Rd, Jingan Qu, Shanghai Shi, China", 31.2016715,121.4097446
+"Shanghai Disneyland, Huangzhao Rd, Chuanshaxinzhen, Pudong Xinqu, Shanghai Shi, China", 31.1452795,121.6551
+
+"Babaoshan Revolutionary Cemetery, 9 Shijingshan Rd, Shijingshan Qu, Beijing Shi, China", 39.8595299,116.4036126
+"Beijing Hotel, 33 E Chang'an Ave, DongDan, Dongcheng Qu, Beijing Shi, China", 39.9083453,116.4133494
+
+
+
+### outside the city
+"155 Lambert Dr, Princeton, NJ, United States", 40.389798, -74.714917
+"240 Rolling Hill Rd, Skillman, NJ, United States", 40.340864, -74.696987
+"15391 E 1st Ave, Aurora, CO, United States", 39.750217, -104.950106
+"2300 Steele St, Denver, CO, United States", 39.718957, -104.808901
+"555 El Encanto Rd, City Industry, CA, United States", 35.618026, -117.644208
+
+"West City Plaza, Wen'er W Rd, ChengXi ShangQuan, Xihu Qu, Hangzhou Shi, Zhejiang Sheng, China", 27.9934342,120.6713356
+"Wenzhou Exhibition Hall, 627 Chezhan Ave, Lucheng Qu, Wenzhou Shi, Zhejiang Sheng, China", 30.2805101,120.0928462
+
+### outside the state / province
+"155 Lambert Dr, Princeton, NJ, United States", 39.718957, -104.808901
+"15391 E 1st Ave, Aurora, CO, United States", 34.020608, -117.964785
+"555 El Encanto Rd, City Industry, CA, United States", 33.505441, -86.772747
+"3600 Redmont Rd, Birmingham, AL, United States", 35.618026, -117.644208
+"312 S Locust St, Ridgecrest, CA, United States", 33.577675, -83.913147
+
+"Hangzhou Underwater World, 49 Nanshan Rd, Shangcheng Qu, Hangzhou Shi, Zhejiang Sheng, China", 31.9812848,118.7784944
+"Suning, 2008 Yitian Rd, Futian Qu, Shenzhen Shi, Guangdong Sheng, China", 32.0100399,118.8465675
