@@ -8,10 +8,10 @@ version 1.0
 """
 
 from src.logger import create_logger
+from src.validator import Validator
 
 import logging
 import getopt
-import json
 import sys
 import os
 
@@ -49,7 +49,8 @@ def main(args):
             sys.exit(usage)
 
     if input_file and output_file:
-        pass
+        validator = Validator(input_file, output_file)
+        validator.process()
     else:
         logger.error("No input csv file or output file path in parameter")
         sys.exit(usage)

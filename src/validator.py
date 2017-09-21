@@ -30,6 +30,8 @@ class Validator(object):
         self._input_file = input_file
         self._output_file = output_file
 
+        LOGGER.info("Validator successfully created")
+
     def _err(self, msg, exc=False):
         """The Validator err private method
         Reports an error message and exit.
@@ -42,3 +44,13 @@ class Validator(object):
         if exc:
             LOGGER.debug("Exception:", exc_info=True)
         sys.exit(msg)
+
+    """ Interface methods """
+
+    def process(self):
+        """The Validator process public method
+        Process input csv file and validate addresses.
+
+        @param self The Validator object pointer.
+        """
+        pass
