@@ -9,6 +9,7 @@ version 1.0
 
 from src.logger import create_logger
 from src.validator import Validator
+from src.settings import LOG_FILE, LOG_LEVEL
 
 import logging
 import getopt
@@ -21,15 +22,12 @@ Usage::
 """
 
 logger = None
-log_file = 'log/geofencing_validator.log'
-log_level = 'INFO'
-
 
 def main(args):
     input_file = None
     output_file = None
 
-    logger = create_logger(log_file, log_level)
+    logger = create_logger(LOG_FILE, LOG_LEVEL)
     logger.info("Geofencing validator logger was created.")
 
     try:
@@ -41,9 +39,9 @@ def main(args):
 
     for opt, arg in opts:
         if opt in ("-i", "--input"):
-            input_img_file = arg
+            input_file = arg
         elif opt in ("-o", "--output"):
-            output_img_file = arg
+            output_file = arg
         else:
             logger.error("Incorrect parameter was set")
             sys.exit(usage)
