@@ -1,7 +1,7 @@
 # GEOFENCING VALIDATION Tool Deployment and Verification Guide
 
 ### Description
-In this challenge we developed a tool to validate whether certain latitude and longitude points, given from csv file, are really in a certain city or state as designated by an address, given from scv file too.
+In this challenge we developed a tool to validate whether certain latitude and longitude points, given from csv file, are really in a certain city or state as designated by an address, given from csv file too.
 
 ## Prerequisites
 * Python 3.6.2
@@ -43,7 +43,7 @@ For more datails check [Validation description](#documentation)
 ## Production Build and Installation
 ### Usage
 ```
-    ./geofencing_validator.py -i|--input=<input csv file> -o|--output=<output csv file>
+./geofencing_validator.py -i|--input=<input csv file> -o|--output=<output csv file>
 ```
 
 To start the application execute the following command under the root directory of this submission:
@@ -60,15 +60,25 @@ $ python3 geofencing_validator.py -i ./samples/location-for-dev.csv  -o ./sample
 
 ## Documentation
 ### Validation methods description
-* General method - the simpliest method, which is only request address geo location
+* `General method` - the simpliest method, which is only request address geo location
   and than calculate extended location range, using threshold values (THRESHOLDS), compares given from file
   latitude and longitude values with extended range and checks if this point lies in address boundary.
+  For example:
+  ```
+  (location.latitude - THRESHOLDS['correct']) < latitude < (location.latitude + THRESHOLDS['correct'])
+  (location.longitude - THRESHOLDS['correct']) < longitude < (location.longitude + THRESHOLDS['correct'])
+  ```
   It processes values in a sequence from correct to totaly wrong result.
-* Accuracy method - this method is used to determine if given latitude and longitude point is
+* `Accuracy method` - this method is used to determine if given latitude and longitude point is
   located in the boundary, with some extention for correct and city results (Tolerance), of address.
+    For example:
+  ```
+  (location['southwest'].latitude - THRESHOLDS['correct']) < latitude < (location['northeast'].latitude + THRESHOLDS['correct'])
+  (location['southwest'].longitude - THRESHOLDS['correct']) < longitude < (location['northeast'].longitude + THRESHOLDS['correct'])
+  ```
   It performs additional request to get boundaries for city, state and country if needed. And than check
   if given point is located in boundary.
-* Reverse method - this method treat exactly correct results identically to the accuracy method.
+* `Reverse method` - this method treat exactly correct results identically to the accuracy method.
   But for other results it makes additional request of reverse geocoding by given latitude and longitude
   and then checks if given and requested addresses contains the same city, state and country values.
 
@@ -83,18 +93,19 @@ Thirteen decimal places will pin down the location to 111,111/10^13 = about 1 an
 ### Help distances table
 Using these ideas we can construct a table of what each digit in a decimal degree signifies:
 
-Decimal Places   Aprox. Distance    Say What?
-tens digit       1000 kilometers    620 miles
-units digit      100 kilometers     62 miles
-1                10 kilometers      6.2 miles
-2                1 kilometer        0.62 miles
-3                100 meters         About 328 feet
-4                10 meters          About 33 feet
-5                1 meter            About 3 feet
-6                10 centimeters     About 4 inches
-7                1.0 centimeter     About 1/2 an inch
-8                1.0 millimeter     The width of paperclip wire.
-9                0.1 millimeter     The width of a strand of hair.
+| Decimal Places  | Aprox. Distance | Say What?                     |
+|-----------------|-----------------|-------------------------------|
+| tens digit      | 1000 kilometers | 620 miles                     |
+| units digit     | 100 kilometers  | 62 miles                      |
+| 1               | 10 kilometers   | 6.2 miles                     |
+| 2               | 1 kilometer     | 0.62 miles                    |
+| 3               | 100 meters      | About 328 feet                |
+| 4               | 10 meters       | About 33 feet                 |
+| 5               | 1 meter         | About 3 feet                  |
+| 6               | 10 centimeters  | About 4 inches                |
+| 7               | 1.0 centimeter  | About 1/2 an inch             |
+| 8               | 1.0 millimeter  | The width of paperclip wire.  |
+| 9               | 0.1 millimeter  | The width of a strand of hair.|
 
 ### Threshold values
 Threshold dictionary is used only by general validation method, it containes:
