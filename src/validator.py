@@ -76,9 +76,8 @@ class Validator(object):
             response = geocode.ok
             request_count += 1
             if not geocode.ok:
-                self._err("Got: {}, while trying to request location {}"
-                          .format(geocode.json, location['address']),
-                          exit=False)
+                LOGGER.warning("Got: {}, while trying to request location {}"
+                               .format(geocode.json, location['address']))
                 time.sleep(REQUEST_TIMEOUT)
         return geocode
 
@@ -294,3 +293,7 @@ class Validator(object):
             self._err(
                 "Got an error:\"{}\", while trying to process file: \"{}\""
                 .format(exc, self._input_file), exc=True)
+        else:
+            LOGGER.info(
+                "{} file successfully procesed, results was saved to {}"
+                .format(self._input_file, self._output_file))
