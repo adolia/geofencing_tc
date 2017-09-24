@@ -8,9 +8,11 @@ version 1.0
 
 from .logger import LOGGER
 from .settings import RESULT_LABEL, VALIDATION_METHOD, THRESHOLDS,\
-    REQUST_COUNT
+    REQUST_COUNT, RESULT_VALUES, TOLERANCE, REQUEST_TIMEOUT
 
+import requests
 import geocoder
+import time
 import csv
 import sys
 import os
@@ -50,74 +52,88 @@ class Validator(object):
         if exit:
             sys.exit(msg)
 
-    def _request_geocoding(self, location, reverse=False):
+    def _request_geocoding(self, location, session, reverse=False):
         """The Validator request geocoding private method
         Requests geocoding by address using Google API.
 
         @param self The Validator object pointer;
         @param location Geo location to request;
+        @param session Persistent HTTP session;
         @param reverse Flag to do reverse geocoding request.
         """
         response = False
         geocode = None
         request_count = 0
         # This trick need, because, in some cases first request doesn't work
-        while not response and request_count < REQUST_COUNT:
+        while not response and request_count <= REQUST_COUNT:
             if reverse:
                 geocode = geocoder.google([location['latitude'],
                                            location['longitude']],
-                                          method='reverse')
+                                          method='reverse',
+                                          session=session)
             else:
-                geocode = geocoder.google(location['address'])
+                geocode = geocoder.google(location['address'], session=session)
             response = geocode.ok
             request_count += 1
             if not geocode.ok:
                 self._err("Got: {}, while trying to request location {}"
                           .format(geocode.json, location['address']),
                           exit=False)
+                time.sleep(REQUEST_TIMEOUT)
         return geocode
 
-    def _general_validation(self, geocode, location):
+    def _prepare_address(self, gcode, address_type):
+        """The Validator prepare addresses private method
+        Prepare addresses string for queries city, state or country.
+
+        @param self The Validator object pointer;
+        @param gcode The location geocode;
+        @param address_type Type of requeste address.
+        """
+        address = []
+
+        if address_type in 'city':
+            address.append(
+                gcode.city if gcode.city else gcode.state_long.split(' ')[0])
+            address.append(gcode.state_long)
+            address.append(gcode.country_long)
+        elif address_type in 'state':
+            address.append(gcode.state_long)
+            address.append(gcode.country_long)
+        elif address_type in 'country':
+            address.append(gcode.country_long)
+            return address[0]
+        else:
+            self._err("Got unsupported address type: {}"
+                      .format(address_type), exit=False)
+            return gcode.location
+
+        return ", ".join(address)
+
+    def _general_validation(self, gcode, location):
         """The Validator general validation private method
         General validation method - compare location lat and long
         values and got geocode with set thresholds.
 
         @param self The Validator object pointer;
-        @param geocode The location geocode;
-        @param location Location data dict [address, lat, long].
+        @param gcode The location geocode;
+        @param location Location data dict [address, lat, long]
         """
         try:
             # Calculate difference between lats and longs
-            ne_lat_diff = abs(
-                geocode.bbox['northeast'][0] - location['latitude'])
-            sw_lat_diff = abs(
-                location['latitude'] - geocode.bbox['southwest'][0])
-            ne_long_diff = abs(
-                geocode.bbox['northeast'][1] - location['longitude'])
-            sw_long_diff = abs(
-                location['longitude'] - geocode.bbox['southwest'][1])
-
-            if ((ne_lat_diff < THRESHOLDS['correct'] > sw_lat_diff) and
-                (ne_long_diff < THRESHOLDS['correct'] > sw_long_diff)):
-                return 'exactly correct'
-            elif ((ne_lat_diff < THRESHOLDS['city'] > sw_lat_diff) and
-                (ne_long_diff < THRESHOLDS['city'] > sw_long_diff)):
-                return 'in same city'
-            elif ((ne_lat_diff < THRESHOLDS['state'] > sw_lat_diff) and
-                (ne_long_diff < THRESHOLDS['state'] > sw_long_diff)):
-                return 'in same state/province'
-            elif ((ne_lat_diff < THRESHOLDS['country'] > sw_lat_diff) and
-                (ne_long_diff < THRESHOLDS['country'] > sw_long_diff)):
-                return 'in same country'
+            for idx, t in enumerate(THRESHOLDS.values()):
+                if ((gcode.lat - t) < location['latitude'] < (gcode.lat + t) and
+                    (gcode.lng - t) < location['longitude'] < (gcode.lng + t)):
+                    return RESULT_VALUES[idx]
             else:
-                return 'totaly wrong'
+                return RESULT_VALUES[-1]
 
         except Exception as exc:
             self._err("Got: {}, while trying to validate \"{}\" correctness"
                       .format(exc, location['address']), exit=False)
-            return 'totaly wrong'
+            return RESULT_VALUES[-1]
 
-    def _accuracy_validation(self, geocode, location):
+    def _accuracy_validation(self, geocode, location, session):
         """The Validator accuracy validation private method
         Accuracy validation method - get boundaries for every
         stage validation (city, state/province, country)
@@ -125,20 +141,73 @@ class Validator(object):
 
         @param self The Validator object pointer;
         @param geocode The location geocode;
-        @param location Location data dict [address, lat, long].
+        @param location Location data dict [address, lat, long];
+        @param session Persistent HTTP session.
         """
-        pass
-    def _reverse_validation(self, geocode, location):
+
+        try:
+            # Calculate difference between lats and longs
+            for idx, _type in enumerate(('correct', 'city',
+                                         'state', 'country')):
+                if idx > 0:
+                    gcode = self._request_geocoding(
+                        {'address': self._prepare_address(geocode, _type)},
+                        session)
+                    sw = gcode.bbox['southwest']
+                    ne = gcode.bbox['northeast']
+                else:
+                    sw = geocode.bbox['southwest']
+                    ne = geocode.bbox['northeast']
+                dlt = 0 if _type not in TOLERANCE else TOLERANCE[_type]
+                LOGGER.debug("Addr: {}, sw: {} hw: {}".format(_type, sw, ne))
+                if (((sw[0] - dlt) <= location['latitude'] <= (ne[0] + dlt)) and
+                    ((sw[1] - dlt) <= location['longitude'] <= (ne[1] + dlt))):
+                    return RESULT_VALUES[idx]
+            else:
+                return RESULT_VALUES[-1]
+
+        except Exception as exc:
+            self._err("Got: {}, while trying to validate \"{}\" correctness"
+                      .format(exc, location['address']), exit=False)
+            return RESULT_VALUES[-1]
+
+    def _reverse_validation(self, gcode, location, session):
         """The Validator reverse validation private method
         Reverse validation method - get address by lat and long
         and compare (city, state/province, country)
         Note: may affect the number of allowable requests.
 
         @param self The Validator object pointer;
-        @param geocode The location geocode;
-        @param location Location data dict [address, lat, long].
+        @param gcode The location geocode;
+        @param location Location data dict [address, lat, long];
+        @param session Persistent HTTP session.
         """
-        pass
+        try:
+            # Calculate difference between lats and longs
+            sw = gcode.bbox['southwest']
+            ne = gcode.bbox['northeast']
+            dlt = TOLERANCE['correct']
+
+            if (((sw[0] - dlt) < location['latitude'] < (ne[0] + dlt)) and
+                ((sw[1] - dlt) < location['longitude'] < (ne[1] + dlt))):
+                return RESULT_VALUES[0]
+            rev_gcode = self._request_geocoding(location,
+                                                session,
+                                                reverse=True)
+            city = gcode.city if gcode.city else gcode.state_long.split(' ')[0]
+            if rev_gcode.city.lower() in city.lower():
+                return RESULT_VALUES[1]
+            elif rev_gcode.state_long.lower() in gcode.state_long.lower():
+                return RESULT_VALUES[2]
+            elif rev_gcode.country_long.lower() in gcode.country_long.lower():
+                return RESULT_VALUES[3]
+            else:
+                return RESULT_VALUES[-1]
+
+        except Exception as exc:
+            self._err("Got: {}, while trying to validate \"{}\" correctness"
+                      .format(exc, location['address']), exit=False)
+            return RESULT_VALUES[-1]
 
     def _validate_geolocation(self, location, index):
         """The Validator validate geolocation private method
@@ -151,26 +220,28 @@ class Validator(object):
         validation_result = 'totaly wrong'
         try:
             # request geocode of address
-            geocode = self._request_geocoding(location)
+            with requests.Session() as session:
+                geocode = self._request_geocoding(location, session)
 
-            if VALIDATION_METHOD == 'general':
-                validation_result = self._general_validation(geocode,
-                                                             location)
-            elif VALIDATION_METHOD == 'accuracy':
-                validation_result = self._accuracy_validation(geocode,
-                                                              location)
-            elif VALIDATION_METHOD == 'accuracy':
-                validation_result = self._reverse_validation(geocode,
-                                                             location)
-            else:
-                self._err(
-                "Got unsupported validation method: \"{}\""
-                .format(VALIDATION_METHOD))
+                if VALIDATION_METHOD == 'general':
+                    validation_result = self._general_validation(geocode,
+                                                                 location)
+                elif VALIDATION_METHOD == 'accuracy':
+                    validation_result = self._accuracy_validation(geocode,
+                                                                  location,
+                                                                  session)
+                elif VALIDATION_METHOD == 'reverse':
+                    validation_result = self._reverse_validation(geocode,
+                                                                 location,
+                                                                 session)
+                else:
+                    self._err(
+                        "Got unsupported validation method: \"{}\""
+                        .format(VALIDATION_METHOD))
 
         except Exception as exc:
-            self._err(
-                "Got an error:\"{}\", while trying to request location: \"{}\""
-                .format(exc, location['address']), exc=True, exit=False)
+            self._err("Got:\"{}\", while trying to request location: \"{}\""
+                      .format(exc, location['address']), exc=True, exit=False)
             return validation_result
         else:
             return validation_result
