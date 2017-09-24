@@ -73,8 +73,8 @@ $ python3 geofencing_validator.py -i ./samples/location-for-dev.csv  -o ./sample
   located in the boundary, with some extention for correct and city results (Tolerance), of address.
     For example:
   ```
-  (location['southwest'].latitude - THRESHOLDS['correct']) < latitude < (location['northeast'].latitude + THRESHOLDS['correct'])
-  (location['southwest'].longitude - THRESHOLDS['correct']) < longitude < (location['northeast'].longitude + THRESHOLDS['correct'])
+  (location['southwest'].latitude - TOLERANCE['correct']) < latitude < (location['northeast'].latitude + TOLERANCE['correct'])
+  (location['southwest'].longitude - TOLERANCE['correct']) < longitude < (location['northeast'].longitude + TOLERANCE['correct'])
   ```
   It performs additional request to get boundaries for city, state and country if needed. And than check
   if given point is located in boundary.
