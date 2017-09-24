@@ -58,6 +58,18 @@ $ python3 geofencing_validator.py -i ./samples/location-for-dev.csv  -o ./sample
 * Than check if the results were saved to the output file.
 * You can try to use different validation methods and adjust thresholds properly to improve result accuracy.
 
+Note: input csv file should contain formated data with values: `address,latitude,longitude`
+For example
+```
+address,latitude,longitude
+
+"155 Lambert Dr, Princeton, NJ, United States", 40.340864, -74.696987
+"15391 E 1st Ave, Aurora, CO, United States", 39.718957, -104.808901
+
+"Huaxia Bank, 539 Jiefang St, Lucheng Qu, Wenzhou Shi, Zhejiang Sheng, China", 28.0166245,120.6546049
+"Hilton Shanghai, 250 Huashan Rd, Jingan Qu, Shanghai Shi, China", 31.2016715,121.4097446
+```
+
 ## Documentation
 ### Validation methods description
 * `General method` - the simpliest method, which is only request address geo location
